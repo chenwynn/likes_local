@@ -7,6 +7,7 @@
         variant="tonal"
         :prepend-icon="syncBtnIcon"
         :loading="syncBtnLoading"
+        :disabled="syncBtnLoading"
         @click="openSyncDialog"
       >{{ syncBtnText }}</v-btn>
       <v-menu :close-on-content-click="true">
@@ -29,6 +30,20 @@
         </v-list>
       </v-menu>
     </div>
+    <v-alert
+      v-if="hasDateFilter && localTotalCount > total"
+      type="info"
+      variant="tonal"
+      density="compact"
+      class="mb-3"
+    >
+      <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+        <span>{{ t('act_filtering_hint') }} {{ total }} / {{ localTotalCount }}</span>
+        <v-btn size="x-small" variant="text" color="primary" @click="showAllFromLocal">
+          {{ t('act_show_all') }}
+        </v-btn>
+      </div>
+    </v-alert>
 
     <v-card class="activities-table-card">
       <v-overlay
@@ -189,6 +204,15 @@
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <v-snackbar
+      v-model="syncDoneToastOpen"
+      :timeout="2200"
+      color="success"
+      location="bottom"
+    >
+      {{ syncDoneToastText }}
+    </v-snackbar>
 
     <!-- Sync Confirm Dialog -->
     <v-dialog v-model="syncDialog" max-width="520" persistent>
@@ -362,6 +386,7 @@ const loading = ref(false)
 const allActivities = ref<ActivityRecord[]>([])
 const activities = ref<ActivityRecord[]>([])
 const total = ref(0)
+const localTotalCount = ref(0)
 
 const receiptDialog = ref(false)
 const receiptActivity = ref<ActivityRecord | null>(null)
@@ -386,6 +411,8 @@ const ALLOWED_ORDER_KEYS = ['sign_date', 'created_time', 'run_km', 'run_time', '
 const filterDialog = ref(false)
 const syncDialog = ref(false)
 const syncRuntimeError = ref('')
+const syncDoneToastOpen = ref(false)
+const syncDoneToastText = ref('')
 const syncForm = reactive<{ start_date: string; end_date: string }>({
   start_date: '',
   end_date: '',
@@ -551,6 +578,7 @@ function formatVerticalOscillation(val: number | null | undefined): string {
 async function loadFromDB() {
   loading.value = true
   try {
+    localTotalCount.value = await db.activities.count()
     const hasStart = Boolean(filterForm.start_date)
     const hasEnd = Boolean(filterForm.end_date)
     if (hasStart || hasEnd) {
@@ -608,6 +636,9 @@ function applyFilterAndPage() {
 
   // Paginate
   total.value = rows.length
+  const pageCount = Math.max(1, Math.ceil(total.value / limit.value))
+  if (page.value > pageCount) page.value = pageCount
+  if (page.value < 1) page.value = 1
   const offset = (page.value - 1) * limit.value
   activities.value = rows.slice(offset, offset + limit.value)
   selected.value = []
@@ -629,12 +660,10 @@ const syncBtnLoading = computed(() => syncState.value.running)
 const syncBtnText = computed(() => {
   const s = syncState.value
   if (s.running) return s.total ? `${s.synced} / ${s.total}` : t('act_syncing')
-  if (s.isComplete) return t('act_synced')
-  if (s.synced > 0) return t('act_sync_more')
   return t('act_sync')
 })
-const syncBtnIcon = computed(() => syncState.value.isComplete ? 'mdi-check-circle-outline' : 'mdi-sync')
-const syncBtnColor = computed(() => syncState.value.isComplete ? 'success' : 'primary')
+const syncBtnIcon = computed(() => 'mdi-sync')
+const syncBtnColor = computed(() => 'primary')
 const syncRangeDays = computed(() => {
   if (!syncForm.start_date || !syncForm.end_date) return 0
   const s = new Date(syncForm.start_date)
@@ -650,6 +679,7 @@ const syncRangeError = computed(() => {
   if (syncRangeDays.value > 31) return t('act_sync_range_max_30')
   return ''
 })
+const hasDateFilter = computed(() => Boolean(filterForm.start_date || filterForm.end_date))
 
 function openSyncDialog() {
   syncRuntimeError.value = ''
@@ -661,12 +691,35 @@ async function confirmSync() {
   if (syncRangeError.value) return
   syncRuntimeError.value = ''
   try {
-    await syncActivitiesInRange(syncForm.start_date, syncForm.end_date)
+    const result = await syncActivitiesInRange(syncForm.start_date, syncForm.end_date)
+    const currentHasStart = Boolean(filterForm.start_date)
+    const currentHasEnd = Boolean(filterForm.end_date)
+    const syncStartTs = dateStrToTs(syncForm.start_date)
+    const syncEndTs = dateStrToTs(syncForm.end_date, true)
+    const currentStartTs = currentHasStart ? dateStrToTs(filterForm.start_date as string) : -Infinity
+    const currentEndTs = currentHasEnd ? dateStrToTs(filterForm.end_date as string, true) : Infinity
+    const syncRangeCoveredByFilter = syncStartTs >= currentStartTs && syncEndTs <= currentEndTs
     syncDialog.value = false
     await loadFromDB()
+    const localTotal = await db.activities.count()
+    syncDoneToastText.value = `${t('act_sync_done_toast')} +${result.inserted}, ${t('act_sync_skipped')}: ${result.skipped}, ${t('act_sync_local_total')}: ${localTotal}`
+    if (result.inserted > 0 && !syncRangeCoveredByFilter) {
+      syncDoneToastText.value += `；${t('act_sync_filter_hint')}`
+    }
+    syncDoneToastOpen.value = true
   } catch {
     syncRuntimeError.value = t('act_sync_failed')
   }
+}
+
+async function fetchActivities() {
+  await loadFromDB()
+}
+
+async function showAllFromLocal() {
+  setDateRange('clear')
+  page.value = 1
+  await loadFromDB()
 }
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
@@ -687,7 +740,7 @@ async function handleReset() {
     min_avg_heart: undefined, max_avg_heart: undefined,
     order_by: 'sign_date', order: 'desc',
   })
-  setDateRange('30d')
+  setDateRange('clear')
   orderBy.value = 'sign_date'
   order.value = 'desc'
   page.value = 1
@@ -743,7 +796,7 @@ watch(() => syncState.value.synced, async (n, o) => {
 
 onMounted(async () => {
   await initSync()
-  setDateRange('30d')
+  setDateRange('clear')
   await loadFromDB()
 })
 </script>

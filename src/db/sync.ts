@@ -218,11 +218,15 @@ export async function syncActivitiesInRange(
         const rows = (res.list ?? []) as ActivityRecord[]
         fetched += rows.length
         if (rows.length > 0) {
-          const ids = rows.map((r) => Number(r.id))
-          const existing = await db.activities.bulkGet(ids)
+          const ids = rows.map((r) => Number(r.id)).filter((id) => Number.isFinite(id) && id > 0)
+          const existingRows = ids.length
+            ? await db.activities.where('id').anyOf(ids as number[]).toArray()
+            : []
+          const existingIdSet = new Set(existingRows.map((r) => Number(r.id)))
           const saveRows: ActivityRecord[] = []
-          rows.forEach((row, idx) => {
-            const isDuplicate = Number(row.overlap) === 1 || Boolean(existing[idx])
+          rows.forEach((row) => {
+            const rowId = Number(row.id)
+            const isDuplicate = Number.isFinite(rowId) && existingIdSet.has(rowId)
             if (isDuplicate) {
               skipped += 1
               return
