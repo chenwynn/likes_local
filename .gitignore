@@ -11,6 +11,21 @@ node_modules/
 # Build output
 dist/
 dist-ssr/
+release/
+out/
+*.dmg
+*.pkg
+*.AppImage
+*.deb
+*.rpm
+*.blockmap
+latest*.yml
+
+# Electron builder caches
+.cache/electron/
+.cache/electron-builder/
+builder-debug.yml
+builder-effective-config.yaml
 
 # Environment variables (contains API key - never commit)
 .env

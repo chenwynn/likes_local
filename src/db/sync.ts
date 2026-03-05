@@ -186,7 +186,7 @@ export async function syncActivitiesInRange(
     throw new Error('invalid_date_range')
   }
   const days = Math.floor((end.getTime() - start.getTime()) / 86400000) + 1
-  if (days > 30) {
+  if (days > 31) {
     throw new Error('date_range_exceeds_30_days')
   }
 

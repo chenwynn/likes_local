@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: window.location.protocol === 'file:' ? createWebHashHistory() : createWebHistory(),
   routes: [
     {
       path: '/lock',

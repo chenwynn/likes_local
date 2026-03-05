@@ -1621,7 +1621,8 @@ function handleSave() {
 // 加载 runforce.json（跑力值对应配速/成绩）
 async function loadRunforceData() {
   try {
-    const res = await fetch('/runforce.json')
+    const url = new URL(`${import.meta.env.BASE_URL}runforce.json`, window.location.href).toString()
+    const res = await fetch(url)
     if (res.ok) {
       runforceData.value = await res.json()
       if (likesInstance.value && sportParams.vdot != null) {

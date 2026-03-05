@@ -420,7 +420,7 @@ function setDateRange(preset: 'today' | '7d' | '30d' | 'month' | 'clear') {
   }
   const start = new Date(now)
   if (preset === '7d') start.setDate(start.getDate() - 6)
-  else if (preset === '30d') start.setDate(start.getDate() - 29)
+  else if (preset === '30d') start.setDate(start.getDate() - 30)
   else if (preset === 'month') start.setDate(1)
   filterForm.start_date = start.toISOString().slice(0, 10)
   filterForm.end_date = today
@@ -436,7 +436,7 @@ function setSyncDateRange(preset: 'today' | '7d' | '30d') {
   }
   const start = new Date(now)
   if (preset === '7d') start.setDate(start.getDate() - 6)
-  else start.setDate(start.getDate() - 29)
+  else start.setDate(start.getDate() - 30)
   syncForm.start_date = start.toISOString().slice(0, 10)
   syncForm.end_date = today
 }
@@ -551,7 +551,18 @@ function formatVerticalOscillation(val: number | null | undefined): string {
 async function loadFromDB() {
   loading.value = true
   try {
-    allActivities.value = (await db.activities.toArray()) as unknown as ActivityRecord[]
+    const hasStart = Boolean(filterForm.start_date)
+    const hasEnd = Boolean(filterForm.end_date)
+    if (hasStart || hasEnd) {
+      const lower = hasStart ? dateStrToTs(filterForm.start_date as string) : 0
+      const upper = hasEnd ? dateStrToTs(filterForm.end_date as string, true) : 4_102_444_800 // 2100-01-01
+      allActivities.value = (await db.activities
+        .where('sign_date')
+        .between(lower, upper, true, true)
+        .toArray()) as unknown as ActivityRecord[]
+    } else {
+      allActivities.value = (await db.activities.toArray()) as unknown as ActivityRecord[]
+    }
     applyFilterAndPage()
   } finally {
     loading.value = false
@@ -636,7 +647,7 @@ const syncRangeError = computed(() => {
   const s = new Date(syncForm.start_date)
   const e = new Date(syncForm.end_date)
   if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime()) || s > e) return t('act_sync_invalid_range')
-  if (syncRangeDays.value > 30) return t('act_sync_range_max_30')
+  if (syncRangeDays.value > 31) return t('act_sync_range_max_30')
   return ''
 })
 
@@ -660,15 +671,15 @@ async function confirmSync() {
 
 // ─── Filter helpers ───────────────────────────────────────────────────────────
 
-function handleFilter() {
+async function handleFilter() {
   page.value = 1
   if (filterForm.order_by) orderBy.value = filterForm.order_by
   if (filterForm.order) order.value = filterForm.order
-  applyFilterAndPage()
+  await loadFromDB()
   filterDialog.value = false
 }
 
-function handleReset() {
+async function handleReset() {
   Object.assign(filterForm, {
     start_date: undefined, end_date: undefined, run_type: undefined,
     related_type: undefined, min_distance: undefined, max_distance: undefined,
@@ -676,10 +687,11 @@ function handleReset() {
     min_avg_heart: undefined, max_avg_heart: undefined,
     order_by: 'sign_date', order: 'desc',
   })
+  setDateRange('30d')
   orderBy.value = 'sign_date'
   order.value = 'desc'
   page.value = 1
-  applyFilterAndPage()
+  await loadFromDB()
   filterDialog.value = false
 }
 
@@ -731,6 +743,7 @@ watch(() => syncState.value.synced, async (n, o) => {
 
 onMounted(async () => {
   await initSync()
+  setDateRange('30d')
   await loadFromDB()
 })
 </script>

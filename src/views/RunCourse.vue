@@ -393,7 +393,8 @@ async function loadOfficial() {
   if (officialList.value.length) return
   officialLoading.value = true
   try {
-    const res = await fetch('/runcourse.json')
+    const url = new URL(`${import.meta.env.BASE_URL}runcourse.json`, window.location.href).toString()
+    const res = await fetch(url)
     const data = await res.json()
     officialList.value = Array.isArray(data) ? data : []
     officialDetailCache.clear()

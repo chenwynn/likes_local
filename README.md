@@ -1,5 +1,7 @@
 # Likes Local
 
+[English](./README.en.md)
+
 ![系统截图 1](./docs/Screenshot%202026-03-05%20at%2013.48.14.png)
 ![系统截图 2](./docs/Screenshot%202026-03-05%20at%2013.48.18.png)
 ![系统截图 3](./docs/Screenshot%202026-03-05%20at%2013.48.27.png)
@@ -7,11 +9,9 @@
 
 一个纯前端项目，通过开放 API 展示你的 [Likes](https://my.likes.com.cn) 运动数据。支持一键本地运行或部署到 Vercel。
 
-> A pure frontend app to visualize your Likes fitness data via Open API. Run locally or deploy to Vercel in one click.
-
 ---
 
-## ✨ 功能 Features
+## ✨ 功能
 
 - 🏃 **活动列表** — 按类型、日期范围筛选，支持分页
 - 📊 **数据分析** — 周/月里程趋势图、运动类型分布（ECharts）
@@ -24,7 +24,7 @@
 
 ---
 
-## 🚀 快速开始 Quick Start
+## 🚀 快速开始
 
 ### 1. 获取 API Key
 
@@ -68,6 +68,21 @@ npm run preview  # 本地预览生产版本
 4. 点击 Deploy
 
 > ⚠️ **CORS 说明**：Vercel 部署时前端直接调用 `my.likes.com.cn` API，需要后端开启跨域支持。本地开发通过 Vite 代理自动处理 CORS，无需额外配置。
+
+---
+
+## 🖥️ 桌面安装包（GitHub Actions + Releases）
+
+- 已内置 Electron 打包：macOS 产物 `dmg/pkg`，Linux 产物 `AppImage/deb`
+- 已配置工作流：`.github/workflows/release-desktop.yml`
+- 触发方式：推送版本标签（例如 `v1.0.0`）
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+工作流完成后，可在 GitHub Releases 下载对应安装包。
 
 ---
 
@@ -132,7 +147,7 @@ src/
 
 ---
 
-## 🛣️ 路线图 Roadmap
+## 🛣️ 路线图
 
 - [x] 活动列表与详情
 - [x] 数据分析图表

@@ -6,8 +6,10 @@ import path from 'path'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const apiBaseUrl = env.VITE_API_BASE_URL || 'https://my.likes.com.cn'
+  const isElectronBuild = env.VITE_ELECTRON === '1' || process.env.VITE_ELECTRON === '1'
 
   return {
+    base: isElectronBuild ? './' : '/',
     plugins: [
       vue(),
       vuetify({ autoImport: true }),
