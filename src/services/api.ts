@@ -45,7 +45,9 @@ function cacheSet(key: string, data: unknown): void {
 // ─── Axios instance ───────────────────────────────────────────────────────
 
 function getApiKey(): string {
-  return localStorage.getItem(STORAGE_KEYS.API_KEY) ?? (import.meta.env.VITE_API_KEY as string | undefined) ?? ''
+  // Do not read API key from build-time env in packaged/runtime app.
+  // Only explicit user input stored locally is trusted.
+  return localStorage.getItem(STORAGE_KEYS.API_KEY) ?? ''
 }
 
 function getBaseUrl(): string {

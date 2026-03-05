@@ -2,7 +2,9 @@ import { ref, computed } from 'vue'
 import { STORAGE_KEYS } from '@/constants'
 
 const apiKey = ref<string>(
-  localStorage.getItem(STORAGE_KEYS.API_KEY) ?? (import.meta.env.VITE_API_KEY as string | undefined) ?? ''
+  // Never preload API key from build-time env in app runtime.
+  // This avoids leaking packager's personal key to end users.
+  localStorage.getItem(STORAGE_KEYS.API_KEY) ?? ''
 )
 const apiBaseUrl = ref<string>(
   localStorage.getItem(STORAGE_KEYS.API_BASE_URL) ?? (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? 'https://my.likes.com.cn'
@@ -11,7 +13,7 @@ const appName = ref<string>(
   localStorage.getItem(STORAGE_KEYS.APP_NAME) ?? (import.meta.env.VITE_APP_NAME as string | undefined) ?? 'likes'
 )
 const customPassword = ref<string>(
-  localStorage.getItem(STORAGE_KEYS.APP_PASSWORD) ?? (import.meta.env.VITE_APP_PASSWORD as string | undefined) ?? ''
+  localStorage.getItem(STORAGE_KEYS.APP_PASSWORD) ?? ''
 )
 const unlocked = ref<boolean>(
   sessionStorage.getItem(STORAGE_KEYS.APP_UNLOCKED) === 'true' || !customPassword.value
