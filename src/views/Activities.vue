@@ -373,6 +373,7 @@ import { db } from '@/db'
 import { syncState, initSync, syncActivitiesInRange } from '@/db/sync'
 import { RUN_TYPE_MAP, RUN_TYPE_COLORS, PAGINATION_CONFIG } from '@/constants'
 import { formatTime, formatDuration, formatDurationHMS, formatDistance, formatPace, getRunTypeIcon, getRelatedTypeName, downloadJSON, downloadText } from '@/utils'
+import { resolveApiErrorMessage } from '@/utils/apiError'
 import * as XLSX from 'xlsx'
 import { useLocale } from '@/composables/useLocale'
 import type { ActivityRecord } from '@/types'
@@ -707,8 +708,8 @@ async function confirmSync() {
       syncDoneToastText.value += `；${t('act_sync_filter_hint')}`
     }
     syncDoneToastOpen.value = true
-  } catch {
-    syncRuntimeError.value = t('act_sync_failed')
+  } catch (e) {
+    syncRuntimeError.value = resolveApiErrorMessage(e, t, 'activityList')
   }
 }
 

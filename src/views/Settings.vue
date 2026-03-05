@@ -189,6 +189,7 @@ import { useLocale } from '@/composables/useLocale'
 import { openApi } from '@/services/api'
 import { db, hasAnyLocalData } from '@/db'
 import { resetSync, startSync } from '@/db/sync'
+import { resolveApiErrorMessage } from '@/utils/apiError'
 import PaceModal from '@/components/Settings/PaceModal.vue'
 import { formatPace, getThresholdPaceZones, getHrReserveZones, getHrMaxZones, getFtpZones, getSwimCssZones } from '@/utils'
 import type { OpenProfileResponse } from '@/types'
@@ -223,8 +224,8 @@ async function testApiConnection() {
   try {
     await openApi.getProfile(true)
     initSyncHint.value = t('settings_test_ok')
-  } catch {
-    initSyncHint.value = t('settings_test_failed')
+  } catch (e) {
+    initSyncHint.value = resolveApiErrorMessage(e, t, 'profile')
   } finally {
     testingApi.value = false
   }
@@ -245,8 +246,8 @@ async function runInitSync() {
     await loadDbStats()
     await refreshInitSyncDisabled()
     initSyncHint.value = t('settings_init_sync_started')
-  } catch {
-    initSyncHint.value = t('settings_init_sync_failed')
+  } catch (e) {
+    initSyncHint.value = resolveApiErrorMessage(e, t, 'initSync')
   } finally {
     initSyncLoading.value = false
   }

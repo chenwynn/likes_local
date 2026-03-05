@@ -298,6 +298,7 @@
             :label="syncOverwrite ? t('calendar_sync_mode_overwrite') : t('calendar_sync_mode_merge')"
           />
           <div class="text-caption text-medium-emphasis mt-2">{{ t('calendar_sync_mode_hint') }}</div>
+          <div v-if="syncErrorHint" class="text-caption text-error mt-2">{{ syncErrorHint }}</div>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -372,6 +373,9 @@
             <div><span>{{ t('calendar_push_result_parse_failed') }}</span><strong>{{ pushResultSummary.parse_failed }}</strong></div>
             <div><span>{{ t('calendar_push_result_insert_failed') }}</span><strong>{{ pushResultSummary.insert_failed }}</strong></div>
           </div>
+          <div v-if="pushResultMessage" class="text-caption text-error mt-3">
+            {{ pushResultMessage }}
+          </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -432,6 +436,7 @@ import * as XLSX from 'xlsx'
 import { RUN_TYPE_COLORS } from '@/constants'
 import { db, saveRunCourse, type DBGameTaskUser, type DBRunCourse } from '@/db'
 import { openApi } from '@/services/api'
+import { resolveApiErrorMessage } from '@/utils/apiError'
 import type { ActivityRecord, PlanEvent } from '@/types'
 import PlanEditor from '@/components/PlanEditor.vue'
 import ActivityReceiptDetail from '@/components/ActivityReceiptDetail.vue'
@@ -462,10 +467,12 @@ const planLibraryLoading = ref(false)
 const planLibraryList = ref<DBRunCourse[]>([])
 const syncDialogOpen = ref(false)
 const syncOverwrite = ref(false)
+const syncErrorHint = ref('')
 const pushDialogOpen = ref(false)
 const pushOverwrite = ref(false)
 const pushResultDialogOpen = ref(false)
 const pushResultSummary = ref<null | { total: number; inserted: number; parse_failed: number; insert_failed: number }>(null)
+const pushResultMessage = ref('')
 const runCourseEventDetailCache = new Map<number, { html: string; echart: { data: any[]; max: number } | null }>()
 const collectSnackbar = ref(false)
 type CopyBuffer = { type: 'event' | 'week' | 'month'; plans: PlanEvent[]; sourceStart?: string } | null
@@ -1087,11 +1094,13 @@ async function togglePlanLibrary() {
 
 function openSyncDialog() {
   syncOverwrite.value = false
+  syncErrorHint.value = ''
   syncDialogOpen.value = true
 }
 
 function openPushDialog() {
   pushOverwrite.value = false
+  pushResultMessage.value = ''
   pushDialogOpen.value = true
 }
 
@@ -1129,6 +1138,7 @@ function exportMonthPlansExcel() {
 async function confirmPushPlans() {
   if (!pushCandidates.value.length) return
   pushingPlans.value = true
+  pushResultMessage.value = ''
   try {
     const payloadPlans = pushCandidates.value.map((p) => ({
       name: String(p.name || ''),
@@ -1156,6 +1166,7 @@ async function confirmPushPlans() {
     pushResultDialogOpen.value = true
   } catch (err: any) {
     pushResultSummary.value = { total: 0, inserted: 0, parse_failed: 0, insert_failed: 1 }
+    pushResultMessage.value = resolveApiErrorMessage(err, t, 'plansPush')
     pushDialogOpen.value = false
     pushResultDialogOpen.value = true
   } finally {
@@ -1165,6 +1176,7 @@ async function confirmPushPlans() {
 
 async function syncRemotePlans() {
   syncing.value = true
+  syncErrorHint.value = ''
   try {
     const planRes = await openApi.getPlans({ start: monthCursor.value.startOf('month').format('YYYY-MM-DD') })
     if (syncOverwrite.value) {
@@ -1180,6 +1192,8 @@ async function syncRemotePlans() {
     await loadLocalPlans()
     dirty.value = false
     syncDialogOpen.value = false
+  } catch (e) {
+    syncErrorHint.value = resolveApiErrorMessage(e, t, 'plans')
   } finally {
     syncing.value = false
   }
