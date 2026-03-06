@@ -188,11 +188,12 @@ import { useAuth } from '@/composables/useAuth'
 import { useLocale } from '@/composables/useLocale'
 import { openApi } from '@/services/api'
 import { db, hasAnyLocalData } from '@/db'
-import { stopSync, resetSync, startSync } from '@/db/sync'
+import { stopSync, resetSync, syncActivitiesInRange } from '@/db/sync'
 import { resolveApiErrorMessage } from '@/utils/apiError'
 import PaceModal from '@/components/Settings/PaceModal.vue'
 import { formatPace, getThresholdPaceZones, getHrReserveZones, getHrMaxZones, getFtpZones, getSwimCssZones } from '@/utils'
 import type { OpenProfileResponse } from '@/types'
+import dayjs from 'dayjs'
 
 const { saveSettings, apiKey, apiBaseUrl, appName, customPassword } = useAuth()
 const { t } = useLocale()
@@ -242,13 +243,15 @@ async function runInitSync() {
     initSyncHint.value = t('settings_init_sync_stage_plans')
     await db.game_task_user.clear()
     await openApi.syncPlansToLocal({})
-    // 3) Activities (full background sync, first page immediately)
+    // 3) Activities (sync latest 60 days, then finish)
     initSyncHint.value = t('settings_init_sync_stage_activities')
     await resetSync()
-    await startSync()
+    const endDate = dayjs().format('YYYY-MM-DD')
+    const startDate = dayjs().subtract(59, 'day').format('YYYY-MM-DD')
+    const result = await syncActivitiesInRange(startDate, endDate)
     await loadDbStats()
     await refreshInitSyncDisabled()
-    initSyncHint.value = t('settings_init_sync_started')
+    initSyncHint.value = `${t('settings_init_sync_started')} (+${result.inserted})`
   } catch (e) {
     initSyncHint.value = resolveApiErrorMessage(e, t, 'initSync')
   } finally {

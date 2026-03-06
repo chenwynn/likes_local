@@ -322,6 +322,7 @@ import { LineChart, BarChart, PieChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { useLocale } from '@/composables/useLocale'
 import { formatDistance, formatPace, formatDuration, formatDurationHMS } from '@/utils'
+import { resolveApiErrorMessage } from '@/utils/apiError'
 import type { DBActivity } from '@/db'
 import { db } from '@/db'
 import { syncState, syncActivitiesInRange, initSync } from '@/db/sync'
@@ -363,8 +364,22 @@ function getRecentRange(daysCount: number): { startDate: string; endDate: string
   return { startDate, endDate }
 }
 async function syncRecentDays(daysCount: number): Promise<{ fetched: number; inserted: number; skipped: number }> {
-  const { startDate, endDate } = getRecentRange(daysCount)
-  const result = await syncActivitiesInRange(startDate, endDate)
+  // syncActivitiesInRange 单次最多支持 31 天，这里按 30 天窗口分段同步，
+  // 保持“首次 60 天 / 后续 7 天”的产品策略不变。
+  let cursorEnd = dayjs()
+  let remaining = Math.max(1, daysCount)
+  const result = { fetched: 0, inserted: 0, skipped: 0 }
+  while (remaining > 0) {
+    const chunkDays = Math.min(30, remaining)
+    const endDate = cursorEnd.format('YYYY-MM-DD')
+    const startDate = cursorEnd.subtract(chunkDays - 1, 'day').format('YYYY-MM-DD')
+    const partial = await syncActivitiesInRange(startDate, endDate)
+    result.fetched += partial.fetched
+    result.inserted += partial.inserted
+    result.skipped += partial.skipped
+    remaining -= chunkDays
+    cursorEnd = cursorEnd.subtract(chunkDays, 'day')
+  }
   await loadFromDB()
   return result
 }
@@ -376,9 +391,9 @@ async function handleStartSync() {
     const result = await syncRecentDays(60)
     syncNoticeColor.value = 'success'
     syncNoticeText.value = `${t('analysis_sync_done')} (+${result.inserted})`
-  } catch {
+  } catch (e) {
     syncNoticeColor.value = 'error'
-    syncNoticeText.value = syncState.value.error || t('act_sync_failed')
+    syncNoticeText.value = resolveApiErrorMessage(e, t, 'activityList')
   } finally {
     syncNoticeOpen.value = true
   }
@@ -1027,7 +1042,11 @@ onMounted(async () => {
   // - 本地无历史：首次拉近 60 天，保证图表有足够数据
   // - 本地已有历史：仅拉近 7 天，降低接口压力
   const syncDays = analysisData.value.length > 0 ? 7 : 60
-  await syncRecentDays(syncDays)
+  try {
+    await syncRecentDays(syncDays)
+  } catch {
+    // 页面首次加载失败不阻断渲染，用户可手动重试
+  }
 })
 watch(() => syncState.value.synced, async (n, o) => { if (n !== o && n > 0) await loadFromDB() })
 </script>
