@@ -15,6 +15,8 @@
     "desktop:pack": "npm run build:electron && electron-builder --dir --publish never"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.2.11",
+    "@fontsource/roboto": "^5.2.10",
     "axios": "^1.7.9",
     "dayjs": "^1.11.13",
     "dexie": "^4.3.0",

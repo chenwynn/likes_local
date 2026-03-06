@@ -45,6 +45,14 @@ export interface DBAnalysisDetail {
   total_ascent: number
   avg_power: number
   avg_cadence: number
+  /** 触地时长 ms */
+  avg_contact: number
+  /** 步幅 cm */
+  avg_stride: number
+  /** 垂直振幅 cm */
+  avg_vertical: number
+  /** 垂直移动比 % */
+  avg_vertical_ratio: number
   overlap: number
   aerobic_time: number
   hybrid_time: number
@@ -178,6 +186,10 @@ export function buildAnalysisDetail(a: ActivityRecord): DBAnalysisDetail {
     total_ascent: Number(a.total_ascent) || 0,
     avg_power: Number(a.avg_power) || 0,
     avg_cadence: Number(a.avg_cadence) || 0,
+    avg_contact: Number(a.avg_contact) || 0,
+    avg_stride: Number(a.avg_stride) || 0,
+    avg_vertical: Number(a.avg_vertical) || 0,
+    avg_vertical_ratio: Number(a.avg_vertical_ratio) || 0,
     overlap: Number(a.overlap) || 0,
     aerobic_time: Number(a.aerobic_time) || 0,
     hybrid_time: Number(a.hybrid_time) || 0,

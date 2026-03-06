@@ -47,7 +47,14 @@
 
       <div class="analysis-masonry">
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-chart-bar</v-icon>{{ t('analysis_distance_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-chart-bar</v-icon>{{ t('analysis_distance_trend') }}
+            <v-spacer />
+            <span v-if="distanceGrowth" class="chart-growth" :class="'chart-growth--' + distanceGrowth.dir">
+              <v-icon size="16">{{ distanceGrowth.icon }}</v-icon>
+              {{ distanceGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text>
             <div class="chart-stats mb-2">
               <span class="stat-item">{{ t('analysis_mean') }} <strong class="stat-value">{{ formatDistance(distanceStats.mean) }}</strong></span>
@@ -60,7 +67,14 @@
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-timer-outline</v-icon>{{ t('analysis_duration_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-timer-outline</v-icon>{{ t('analysis_duration_trend') }}
+            <v-spacer />
+            <span v-if="durationGrowth" class="chart-growth" :class="'chart-growth--' + durationGrowth.dir">
+              <v-icon size="16">{{ durationGrowth.icon }}</v-icon>
+              {{ durationGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text>
             <div class="chart-stats mb-2">
               <span class="stat-item">{{ t('analysis_mean') }} <strong class="stat-value">{{ formatDuration(Math.round(durationStats.mean)) }}</strong></span>
@@ -90,53 +104,202 @@
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-speedometer</v-icon>{{ t('analysis_pace_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-speedometer</v-icon>{{ t('analysis_pace_trend') }}
+            <v-spacer />
+            <span v-if="paceGrowth" class="chart-growth" :class="'chart-growth--' + paceGrowth.dir">
+              <v-icon size="16">{{ paceGrowth.icon }}</v-icon>
+              {{ paceGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="paceChartOption" class="chart-wrap"><v-chart :option="paceChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-heart-pulse</v-icon>{{ t('analysis_heart_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-heart-pulse</v-icon>{{ t('analysis_heart_trend') }}
+            <v-spacer />
+            <span v-if="heartGrowth" class="chart-growth" :class="'chart-growth--' + heartGrowth.dir">
+              <v-icon size="16">{{ heartGrowth.icon }}</v-icon>
+              {{ heartGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="heartChartOption" class="chart-wrap"><v-chart :option="heartChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-lightning-bolt</v-icon>{{ t('analysis_power_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-lightning-bolt</v-icon>{{ t('analysis_power_trend') }}
+            <v-spacer />
+            <span v-if="powerGrowth" class="chart-growth" :class="'chart-growth--' + powerGrowth.dir">
+              <v-icon size="16">{{ powerGrowth.icon }}</v-icon>
+              {{ powerGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="powerChartOption" class="chart-wrap"><v-chart :option="powerChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-elevation-rise</v-icon>{{ t('analysis_elevation_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-elevation-rise</v-icon>{{ t('analysis_elevation_trend') }}
+            <v-spacer />
+            <span v-if="elevationGrowth" class="chart-growth" :class="'chart-growth--' + elevationGrowth.dir">
+              <v-icon size="16">{{ elevationGrowth.icon }}</v-icon>
+              {{ elevationGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="elevationChartOption" class="chart-wrap"><v-chart :option="elevationChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-foot-print</v-icon>{{ t('analysis_cadence_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-foot-print</v-icon>{{ t('analysis_cadence_trend') }}
+            <v-spacer />
+            <span v-if="cadenceGrowth" class="chart-growth" :class="'chart-growth--' + cadenceGrowth.dir">
+              <v-icon size="16">{{ cadenceGrowth.icon }}</v-icon>
+              {{ cadenceGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="cadenceChartOption" class="chart-wrap"><v-chart :option="cadenceChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-timer-sand</v-icon>{{ t('analysis_contact_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-timer-sand</v-icon>{{ t('analysis_contact_trend') }}
+            <v-spacer />
+            <span v-if="contactGrowth" class="chart-growth" :class="'chart-growth--' + contactGrowth.dir">
+              <v-icon size="16">{{ contactGrowth.icon }}</v-icon>
+              {{ contactGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="contactChartOption" class="chart-wrap"><v-chart :option="contactChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-ruler</v-icon>{{ t('analysis_stride_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-ruler</v-icon>{{ t('analysis_stride_trend') }}
+            <v-spacer />
+            <span v-if="strideGrowth" class="chart-growth" :class="'chart-growth--' + strideGrowth.dir">
+              <v-icon size="16">{{ strideGrowth.icon }}</v-icon>
+              {{ strideGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="strideChartOption" class="chart-wrap"><v-chart :option="strideChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-arrow-up-bold</v-icon>{{ t('analysis_vertical_amplitude_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-arrow-up-bold</v-icon>{{ t('analysis_vertical_amplitude_trend') }}
+            <v-spacer />
+            <span v-if="verticalGrowth" class="chart-growth" :class="'chart-growth--' + verticalGrowth.dir">
+              <v-icon size="16">{{ verticalGrowth.icon }}</v-icon>
+              {{ verticalGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="verticalChartOption" class="chart-wrap"><v-chart :option="verticalChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-percent</v-icon>{{ t('analysis_vertical_ratio_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-percent</v-icon>{{ t('analysis_vertical_ratio_trend') }}
+            <v-spacer />
+            <span v-if="verticalRatioGrowth" class="chart-growth" :class="'chart-growth--' + verticalRatioGrowth.dir">
+              <v-icon size="16">{{ verticalRatioGrowth.icon }}</v-icon>
+              {{ verticalRatioGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="verticalRatioChartOption" class="chart-wrap"><v-chart :option="verticalRatioChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
         <v-card class="analysis-card" variant="outlined">
-          <v-card-title class="analysis-card-title d-flex align-center"><v-icon size="22" class="me-2">mdi-run-fast</v-icon>{{ t('analysis_run_force_trend') }}</v-card-title>
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-run-fast</v-icon>{{ t('analysis_run_force_trend') }}
+            <v-spacer />
+            <span v-if="runForceGrowth" class="chart-growth" :class="'chart-growth--' + runForceGrowth.dir">
+              <v-icon size="16">{{ runForceGrowth.icon }}</v-icon>
+              {{ runForceGrowth.text }}
+            </span>
+          </v-card-title>
           <v-card-text><div v-if="runForceChartOption" class="chart-wrap"><v-chart :option="runForceChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
+        </v-card>
+
+        <v-card class="analysis-card" variant="outlined">
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-chart-arc</v-icon>{{ t('analysis_pace_distribution') }}
+          </v-card-title>
+          <v-card-text>
+            <div v-if="paceDistPieOption" class="chart-wrap chart-wrap-pie mb-3"><v-chart :option="paceDistPieOption" autoresize /></div>
+            <div v-if="paceDistChartOption" class="chart-wrap"><v-chart :option="paceDistChartOption" autoresize /></div>
+            <p v-else-if="!paceDistPieOption" class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="analysis-card" variant="outlined">
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-heart-box</v-icon>{{ t('analysis_heart_distribution') }}
+          </v-card-title>
+          <v-card-text>
+            <div v-if="heartDistPieOption" class="chart-wrap chart-wrap-pie mb-3"><v-chart :option="heartDistPieOption" autoresize /></div>
+            <div v-if="heartDistChartOption" class="chart-wrap"><v-chart :option="heartDistChartOption" autoresize /></div>
+            <p v-else-if="!heartDistPieOption" class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p>
+          </v-card-text>
+        </v-card>
+
+        <v-card class="analysis-card" variant="outlined">
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-heart-box</v-icon>{{ t('analysis_hrv_trend') }}
+            <v-spacer />
+            <span v-if="hrvGrowth" class="chart-growth" :class="'chart-growth--' + hrvGrowth.dir">
+              <v-icon size="16">{{ hrvGrowth.icon }}</v-icon>
+              {{ hrvGrowth.text }}
+            </span>
+          </v-card-title>
+          <v-card-text><div v-if="hrvChartOption" class="chart-wrap"><v-chart :option="hrvChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
+        </v-card>
+
+        <v-card class="analysis-card" variant="outlined">
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-scale-bathroom</v-icon>{{ t('analysis_weight_trend') }}
+            <v-spacer />
+            <span v-if="weightGrowth" class="chart-growth" :class="'chart-growth--' + weightGrowth.dir">
+              <v-icon size="16">{{ weightGrowth.icon }}</v-icon>
+              {{ weightGrowth.text }}
+            </span>
+          </v-card-title>
+          <v-card-text><div v-if="weightChartOption" class="chart-wrap"><v-chart :option="weightChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
+        </v-card>
+
+        <v-card class="analysis-card" variant="outlined">
+          <v-card-title class="analysis-card-title d-flex align-center">
+            <v-icon size="22" class="me-2">mdi-table</v-icon>{{ t('analysis_posture_by_zone') }}
+          </v-card-title>
+          <v-card-text>
+            <div v-if="postureByZoneRows.length" class="posture-zone-table-wrap">
+              <table class="posture-zone-table">
+                <thead>
+                  <tr>
+                    <th>{{ t('analysis_zone') }}</th>
+                    <th>{{ t('analysis_cadence_trend') }}</th>
+                    <th>{{ t('analysis_contact_trend') }}</th>
+                    <th>{{ t('analysis_vertical_amplitude_trend') }}</th>
+                    <th>{{ t('analysis_stride_trend') }}</th>
+                    <th>{{ t('analysis_vertical_ratio_trend') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="z in postureByZoneRows" :key="z.area">
+                    <td><span class="zone-badge" :style="{ backgroundColor: paceZoneColor(z.area) }">{{ z.area === 'w' ? 'W' : z.name }}</span></td>
+                    <td>{{ z.avg_cadence != null ? Math.round(z.avg_cadence * 2) + ' spm' : '–' }}</td>
+                    <td>{{ z.avg_contact != null ? Math.round(z.avg_contact) + ' ms' : '–' }}</td>
+                    <td>{{ z.avg_vertical != null ? Number(z.avg_vertical).toFixed(2) + ' cm' : '–' }}</td>
+                    <td>{{ z.avg_stride != null ? Math.round(z.avg_stride) + ' cm' : '–' }}</td>
+                    <td>{{ z.vertical_ratio != null ? Number(z.vertical_ratio).toFixed(2) + '%' : '–' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p>
+          </v-card-text>
         </v-card>
       </div>
     </template>
@@ -153,9 +316,9 @@ import { LineChart, BarChart, PieChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { useLocale } from '@/composables/useLocale'
 import { formatDistance, formatPace, formatDuration, formatDurationHMS } from '@/utils'
-import type { DBAnalysisDetail } from '@/db'
+import type { DBActivity } from '@/db'
 import { db } from '@/db'
-import { syncState, startSync, resetSync, initSync } from '@/db/sync'
+import { syncState, syncActivitiesInRange, initSync } from '@/db/sync'
 import dayjs from 'dayjs'
 
 use([CanvasRenderer, LineChart, BarChart, PieChart, GridComponent, TooltipComponent, LegendComponent])
@@ -164,7 +327,11 @@ const { t } = useLocale()
 const theme = useTheme()
 const days = ref(30)
 const dbLoading = ref(true)
-const analysisData = ref<DBAnalysisDetail[]>([])
+/** 每条打卡（signlog）数据，直接用于按日聚合渲染图表 */
+const analysisData = ref<DBActivity[]>([])
+const thresholdPace = ref<number | null>(null)
+const maxHeartRate = ref<number | null>(null)
+const fallbackWeight = ref<number | null>(null)
 
 const syncProgress = computed(() => !syncState.value.total ? 0 : Math.min(100, Math.round((syncState.value.synced / syncState.value.total) * 100)))
 const syncProgressText = computed(() => syncState.value.total ? `${syncState.value.synced} / ${syncState.value.total}` : t('analysis_syncing'))
@@ -172,13 +339,26 @@ const syncProgressText = computed(() => syncState.value.total ? `${syncState.val
 async function loadFromDB() {
   dbLoading.value = true
   try {
-    analysisData.value = await db.analysis_detail.toArray()
+    analysisData.value = await db.activities.toArray()
+    const p = await db.profile.get(1)
+    thresholdPace.value = Number(p?.data?.t_pace) > 0 ? Number(p?.data?.t_pace) : null
+    maxHeartRate.value = Number(p?.data?.max_rate) > 0 ? Number(p?.data?.max_rate) : null
+    fallbackWeight.value = Number(p?.data?.weight) > 0 ? Number(p?.data?.weight) : null
   } finally {
     dbLoading.value = false
   }
 }
-async function handleStartSync() { await startSync(); await loadFromDB() }
-async function handleResetSync() { await resetSync(); analysisData.value = []; await handleStartSync() }
+function getRecentRange(daysCount: number): { startDate: string; endDate: string } {
+  const endDate = dayjs().format('YYYY-MM-DD')
+  const startDate = dayjs().subtract(Math.max(1, daysCount) - 1, 'day').format('YYYY-MM-DD')
+  return { startDate, endDate }
+}
+async function syncRecentDays(daysCount: number): Promise<void> {
+  const { startDate, endDate } = getRecentRange(daysCount)
+  await syncActivitiesInRange(startDate, endDate)
+  await loadFromDB()
+}
+async function handleStartSync() { await syncRecentDays(60) }
 
 const filteredActivities = computed(() => {
   const cutoff = dayjs().subtract(days.value - 1, 'day').startOf('day').unix()
@@ -318,8 +498,160 @@ const darkSplit = computed(() => theme.global.current.value.dark ? 'rgba(255,255
 const meanLineColor = computed(() => theme.global.current.value.dark ? 'rgba(227,184,39,0.5)' : 'rgba(227,184,39,0.55)')
 const meanAreaColor = computed(() => theme.global.current.value.dark ? 'rgba(128,128,128,0.15)' : 'rgba(128,128,128,0.12)')
 const axisLineColor = computed(() => theme.global.current.value.dark ? 'rgba(255,255,255,0.2)' : '#e8eaed')
+const axisLabelColor = computed(() => theme.global.current.value.dark ? 'rgba(255,255,255,0.72)' : 'rgba(0,0,0,0.65)')
 const tooltipTextColor = computed(() => theme.global.current.value.dark ? 'rgba(255,255,255,0.92)' : '#1f2937')
 const tooltipBgColor = computed(() => theme.global.current.value.dark ? 'rgba(20,24,31,0.92)' : 'rgba(255,255,255,0.96)')
+
+type GrowthBadge = { text: string; icon: string; dir: 'up' | 'down' | 'flat' } | null
+function growthFromValues(values: number[], opts?: { lowerIsBetter?: boolean }): GrowthBadge {
+  if (values.length < 2) return null
+  const valid = values.filter((v) => Number.isFinite(v))
+  if (valid.length < 2) return null
+  const ma = expandingMean(valid)
+  const first = ma[0]
+  const last = ma[ma.length - 1]
+  const base = Math.abs(first) || 1
+  let pct = ((last - first) / base) * 100
+  if (opts?.lowerIsBetter) pct = -pct
+  if (Math.abs(pct) < 0.05) return null
+  const up = pct > 0
+  return { text: `${up ? '+' : ''}${pct.toFixed(1)}%`, icon: up ? 'mdi-arrow-up' : 'mdi-arrow-down', dir: up ? 'up' : 'down' }
+}
+
+function readMaybeNumber(source: Record<string, unknown>, keys: string[]): number | null {
+  for (const key of keys) {
+    const n = Number(source[key])
+    if (Number.isFinite(n) && n > 0) return n
+  }
+  return null
+}
+
+type ZoneRow = { area: string; name: string; time: number; avg_cadence?: number; avg_contact?: number; avg_vertical?: number; avg_stride?: number; vertical_ratio?: number }
+const PACE_ZONE_ORDER = ['w', 'e', 'm', 't', 'a', 'i', 'r']
+const PACE_ZONE_LABEL: Record<string, string> = { w: 'W', e: 'E', m: 'M', t: 'T', a: 'A', i: 'I', r: 'R' }
+const PACE_ZONE_COLORS: Record<string, string> = { w: '#D0D0D0', e: '#4CAF50', m: '#2196F3', t: '#FF9800', a: '#FF5722', i: '#F44336', r: '#9C27B0' }
+function paceZoneColor(zone: string): string { return PACE_ZONE_COLORS[zone] || '#9E9E9E' }
+
+function paceZoneFromPace(secPerKm: number): string {
+  if (!(secPerKm > 0)) return 'w'
+  const tp = thresholdPace.value && thresholdPace.value > 0 ? thresholdPace.value : mean(runActivities.value.map(a => Number(a.run_pace) || 0).filter(v => v > 0))
+  if (!(tp > 0)) return 'w'
+  const ratio = secPerKm / tp
+  if (ratio <= 0.75) return 'r'
+  if (ratio <= 0.88) return 'i'
+  if (ratio <= 0.98) return 'a'
+  if (ratio <= 1.06) return 't'
+  if (ratio <= 1.18) return 'm'
+  if (ratio <= 1.32) return 'e'
+  return 'w'
+}
+function heartZoneFromAvg(hr: number): string {
+  const maxHr = maxHeartRate.value && maxHeartRate.value > 0 ? maxHeartRate.value : 190
+  if (!(hr > 0)) return 'w'
+  const pct = hr / maxHr
+  if (pct >= 0.95) return 'r'
+  if (pct >= 0.9) return 'i'
+  if (pct >= 0.85) return 'a'
+  if (pct >= 0.8) return 't'
+  if (pct >= 0.7) return 'm'
+  if (pct >= 0.6) return 'e'
+  return 'w'
+}
+
+const paceDistributionRows = computed(() => {
+  const map = new Map<string, number>()
+  runActivities.value.forEach((a) => {
+    const sec = Number(a.run_time) || 0
+    const pace = Number(a.run_pace) || 0
+    if (sec <= 0 || pace <= 0) return
+    const z = paceZoneFromPace(pace)
+    map.set(z, (map.get(z) || 0) + sec)
+  })
+  return PACE_ZONE_ORDER.map((z) => ({ zone: z, name: PACE_ZONE_LABEL[z], time: map.get(z) || 0 })).filter((z) => z.time > 0)
+})
+const heartDistributionRows = computed(() => {
+  const map = new Map<string, number>()
+  runActivities.value.forEach((a) => {
+    const sec = Number(a.run_time) || 0
+    const hr = Number(a.avg_heart) || 0
+    if (sec <= 0 || hr <= 0) return
+    const z = heartZoneFromAvg(hr)
+    map.set(z, (map.get(z) || 0) + sec)
+  })
+  return PACE_ZONE_ORDER.map((z) => ({ zone: z, name: PACE_ZONE_LABEL[z], time: map.get(z) || 0 })).filter((z) => z.time > 0)
+})
+
+const postureByZoneRows = computed<ZoneRow[]>(() => {
+  const map = new Map<string, ZoneRow & { den: number }>()
+  runActivities.value.forEach((a) => {
+    const sec = Number(a.run_time) || 0
+    const pace = Number(a.run_pace) || 0
+    if (!(sec > 0) || !(pace > 0)) return
+    const zone = paceZoneFromPace(pace)
+    if (!map.has(zone)) {
+      map.set(zone, { area: zone, name: PACE_ZONE_LABEL[zone], time: 0, avg_cadence: 0, avg_contact: 0, avg_vertical: 0, avg_stride: 0, vertical_ratio: 0, den: 0 })
+    }
+    const row = map.get(zone)!
+    row.time += sec
+    row.avg_cadence! += (Number(a.avg_cadence) || 0) * sec
+    row.avg_contact! += (Number(a.avg_contact) || 0) * sec
+    const vertical = Number(a.avg_vertical) || 0
+    row.avg_vertical! += (vertical >= 10 ? vertical / 10 : vertical) * sec
+    row.avg_stride! += (Number(a.avg_stride) || 0) * sec
+    const ratio = Number(a.avg_vertical_ratio) || 0
+    row.vertical_ratio! += (ratio > 1 ? ratio : ratio * 100) * sec
+    row.den += sec
+  })
+  return PACE_ZONE_ORDER.map((z) => {
+    const row = map.get(z)
+    if (!row || row.den <= 0) return null
+    return {
+      area: row.area,
+      name: row.name,
+      time: row.time,
+      avg_cadence: row.avg_cadence! / row.den,
+      avg_contact: row.avg_contact! / row.den,
+      avg_vertical: row.avg_vertical! / row.den,
+      avg_stride: row.avg_stride! / row.den,
+      vertical_ratio: row.vertical_ratio! / row.den,
+    } as ZoneRow
+  }).filter(Boolean) as ZoneRow[]
+})
+
+const hrvDailyRows = computed(() => {
+  const map = new Map<string, { date: string; sum: number; den: number }>()
+  filteredActivities.value.forEach((a) => {
+    const raw = a as unknown as Record<string, unknown>
+    const hrv = readMaybeNumber(raw, ['rmssd_hrv', 'RmssdHrv', 'sdrr_hrv', 'SdrrHrv', 'avg_hrv', 'AvgHrv'])
+    if (!(hrv && hrv > 0)) return
+    const date = dayjs.unix(a.sign_date).format('YYYY-MM-DD')
+    if (!map.has(date)) map.set(date, { date, sum: 0, den: 0 })
+    const row = map.get(date)!
+    row.sum += hrv
+    row.den += 1
+  })
+  return [...map.values()].sort((a, b) => a.date.localeCompare(b.date)).map((r) => ({ date: r.date, value: r.den > 0 ? r.sum / r.den : 0 })).filter((r) => r.value > 0)
+})
+
+const weightDailyRows = computed(() => {
+  const map = new Map<string, { date: string; sum: number; den: number }>()
+  filteredActivities.value.forEach((a) => {
+    const raw = a as unknown as Record<string, unknown>
+    const weight = readMaybeNumber(raw, ['weight', 'Weight'])
+    if (!(weight && weight > 0)) return
+    const date = dayjs.unix(a.sign_date).format('YYYY-MM-DD')
+    if (!map.has(date)) map.set(date, { date, sum: 0, den: 0 })
+    const row = map.get(date)!
+    row.sum += weight
+    row.den += 1
+  })
+  const list = [...map.values()].sort((a, b) => a.date.localeCompare(b.date)).map((r) => ({ date: r.date, value: r.den > 0 ? r.sum / r.den : 0 })).filter((r) => r.value > 0)
+  if (list.length) return list
+  if (fallbackWeight.value && fallbackWeight.value > 0) {
+    return [{ date: dayjs().format('YYYY-MM-DD'), value: fallbackWeight.value }]
+  }
+  return []
+})
 
 function makeTrendOption(
   rows: TrendRow[],
@@ -337,8 +669,8 @@ function makeTrendOption(
   const { min, max } = dataBoundMinMax(v, yName === 'min/km' ? 0.05 : 0.08)
   return {
     grid: { left: 50, right: 20, top: 20, bottom: 32 },
-    xAxis: { type: 'category', data: x, boundaryGap: false, axisLabel: { rotate: 45, color: 'rgba(var(--v-theme-on-surface),0.7)' }, axisLine: { lineStyle: { color: axisLineColor.value } } },
-    yAxis: { type: 'value', name: yName, scale: true, min, max, inverse, axisLabel: yLabel ? { formatter: yLabel, color: 'rgba(var(--v-theme-on-surface),0.7)' } : { color: 'rgba(var(--v-theme-on-surface),0.7)' }, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
+    xAxis: { type: 'category', data: x, boundaryGap: false, axisLabel: { rotate: 45, color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: { type: 'value', name: yName, nameTextStyle: { color: axisLabelColor.value }, scale: true, min, max, inverse, axisLabel: yLabel ? { formatter: yLabel, color: axisLabelColor.value } : { color: axisLabelColor.value }, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
     series: [
       { name: '', type: 'line', data: ma, lineStyle: { width: 0 }, symbol: 'none', areaStyle: { color: meanAreaColor.value }, z: 0 },
       { name: t('analysis_mean'), type: 'line', data: ma, lineStyle: { type: 'dashed', color: meanLineColor.value }, symbol: 'none', z: 1 },
@@ -356,8 +688,10 @@ function makeTrendOption(
 
 const distanceVals = computed(() => trendRows.value.map(r => r.run_km).filter(v => v > 0))
 const distanceStats = computed(() => ({ mean: mean(distanceVals.value), max: distanceVals.value.length ? Math.max(...distanceVals.value) : 0, min: distanceVals.value.length ? Math.min(...distanceVals.value) : 0 }))
+const distanceGrowth = computed(() => growthFromValues(distanceVals.value))
 const durationVals = computed(() => trendRows.value.map(r => r.run_time).filter(v => v > 0))
 const durationStats = computed(() => ({ mean: mean(durationVals.value), max: durationVals.value.length ? Math.max(...durationVals.value) : 0, min: durationVals.value.length ? Math.min(...durationVals.value) : 0 }))
+const durationGrowth = computed(() => growthFromValues(durationVals.value.map((v) => v / 3600)))
 
 const distanceChartOption = computed(() => {
   const list = trendRows.value.filter((r) => r.run_km > 0)
@@ -368,8 +702,8 @@ const distanceChartOption = computed(() => {
   const yMax = Math.max(...v) * 1.06
   return {
     grid: { left: 50, right: 20, top: 20, bottom: 32 },
-    xAxis: { type: 'category', data: x, axisLabel: { rotate: 45, color: 'rgba(var(--v-theme-on-surface),0.7)' }, axisLine: { lineStyle: { color: axisLineColor.value } } },
-    yAxis: { type: 'value', name: 'km', min: 0, max: yMax, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
+    xAxis: { type: 'category', data: x, axisLabel: { rotate: 45, color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: { type: 'value', name: 'km', nameTextStyle: { color: axisLabelColor.value }, axisLabel: { color: axisLabelColor.value }, min: 0, max: yMax, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
     series: [
       { name: '', type: 'line', data: ma, lineStyle: { width: 0 }, symbol: 'none', areaStyle: { color: meanAreaColor.value }, z: 0 },
       { name: t('analysis_mean'), type: 'line', data: ma, lineStyle: { type: 'dashed', color: meanLineColor.value }, symbol: 'none', z: 1 },
@@ -394,8 +728,8 @@ const durationChartOption = computed(() => {
   const yMax = Math.max(...v) * 1.06
   return {
     grid: { left: 50, right: 20, top: 20, bottom: 32 },
-    xAxis: { type: 'category', data: x, axisLabel: { rotate: 45, color: 'rgba(var(--v-theme-on-surface),0.7)' }, axisLine: { lineStyle: { color: axisLineColor.value } } },
-    yAxis: { type: 'value', name: 'h', min: 0, max: yMax, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
+    xAxis: { type: 'category', data: x, axisLabel: { rotate: 45, color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: { type: 'value', name: 'h', nameTextStyle: { color: axisLabelColor.value }, axisLabel: { color: axisLabelColor.value }, min: 0, max: yMax, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
     series: [
       { name: '', type: 'line', data: ma, lineStyle: { width: 0 }, symbol: 'none', areaStyle: { color: meanAreaColor.value }, z: 0 },
       { name: t('analysis_mean'), type: 'line', data: ma, lineStyle: { type: 'dashed', color: meanLineColor.value }, symbol: 'none', z: 1 },
@@ -422,8 +756,8 @@ const paceChartOption = computed(() => {
   const yMax = Math.min(max, 1800)
   return {
     grid: { left: 50, right: 20, top: 20, bottom: 32 },
-    xAxis: { type: 'category', data: x, boundaryGap: false, axisLabel: { rotate: 45, color: 'rgba(var(--v-theme-on-surface),0.7)' }, axisLine: { lineStyle: { color: axisLineColor.value } } },
-    yAxis: { type: 'value', scale: true, min: yMin, max: yMax, inverse: true, axisLabel: { formatter: (val: number) => formatPace(val), color: 'rgba(var(--v-theme-on-surface),0.7)' }, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
+    xAxis: { type: 'category', data: x, boundaryGap: false, axisLabel: { rotate: 45, color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: { type: 'value', scale: true, min: yMin, max: yMax, inverse: true, nameTextStyle: { color: axisLabelColor.value }, axisLabel: { formatter: (val: number) => formatPace(val), color: axisLabelColor.value }, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
     series: [
       { name: '', type: 'line', data: ma, lineStyle: { width: 0 }, symbol: 'none', areaStyle: { color: meanAreaColor.value }, z: 0 },
       { name: t('analysis_mean'), type: 'line', data: ma, lineStyle: { type: 'dashed', color: meanLineColor.value }, symbol: 'none', z: 1 },
@@ -455,6 +789,16 @@ const strideChartOption = computed(() => makeTrendOption(trendRows.value, r => r
 const verticalChartOption = computed(() => makeTrendOption(trendRows.value, r => r.avg_vertical, '#E91E63', 'cm'))
 const verticalRatioChartOption = computed(() => makeTrendOption(trendRows.value, r => r.avg_vertical_ratio, '#673AB7', '%', (v) => `${Math.round(v)}%`))
 const runForceChartOption = computed(() => makeTrendOption(trendRows.value, r => r.run_force, '#1DDFDA', ''))
+const paceGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_pace).filter((v) => v > 0), { lowerIsBetter: true }))
+const heartGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_heart).filter((v) => v > 0)))
+const powerGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_power).filter((v) => v > 0)))
+const elevationGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.total_ascent).filter((v) => v >= 0)))
+const cadenceGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_cadence).filter((v) => v > 0)))
+const contactGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_contact).filter((v) => v > 0), { lowerIsBetter: true }))
+const strideGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_stride).filter((v) => v > 0)))
+const verticalGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_vertical).filter((v) => v > 0), { lowerIsBetter: true }))
+const verticalRatioGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_vertical_ratio).filter((v) => v > 0), { lowerIsBetter: true }))
+const runForceGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.run_force).filter((v) => v > 0)))
 
 const performanceRows = computed(() => {
   let fitness = 0
@@ -537,10 +881,129 @@ const intensityTrendOption = computed(() => {
   }
 })
 
+const paceDistPieOption = computed(() => {
+  const rows = paceDistributionRows.value
+  const total = rows.reduce((s, r) => s + r.time, 0)
+  if (!rows.length || total <= 0) return null
+  return {
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { orient: 'vertical', right: 8, top: 'center' },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '65%'],
+      center: ['40%', '50%'],
+      data: rows.map((r) => ({
+        value: Number(((r.time / total) * 100).toFixed(1)),
+        name: r.name,
+        itemStyle: { color: paceZoneColor(r.zone) },
+      })),
+      label: { formatter: '{b}\n{d}%' },
+    }],
+  }
+})
+const paceDistChartOption = computed(() => {
+  const rows = paceDistributionRows.value
+  if (!rows.length) return null
+  const y = rows.map((r) => r.time)
+  const yMax = Math.max(...y) * 1.08
+  return {
+    grid: { left: 60, right: 20, top: 20, bottom: 40 },
+    xAxis: { type: 'category', data: rows.map((r) => r.name), axisLabel: { color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: {
+      type: 'value',
+      name: t('analysis_time'),
+      nameTextStyle: { color: axisLabelColor.value },
+      axisLabel: { formatter: (v: number) => formatDurationHMS(Math.round(v)), color: axisLabelColor.value },
+      min: 0,
+      max: yMax,
+      splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } },
+    },
+    series: [{ type: 'bar', data: y, itemStyle: { color: '#17C13E' } }],
+    tooltip: { trigger: 'axis', formatter: (p: any) => (p?.[0] ? `${p[0].name}: ${formatDurationHMS(Math.round(rows[p[0].dataIndex].time))}` : '') },
+  }
+})
+
+const heartDistPieOption = computed(() => {
+  const rows = heartDistributionRows.value
+  const total = rows.reduce((s, r) => s + r.time, 0)
+  if (!rows.length || total <= 0) return null
+  return {
+    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
+    legend: { orient: 'vertical', right: 8, top: 'center' },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '65%'],
+      center: ['40%', '50%'],
+      data: rows.map((r) => ({
+        value: Number(((r.time / total) * 100).toFixed(1)),
+        name: r.name,
+        itemStyle: { color: paceZoneColor(r.zone) },
+      })),
+      label: { formatter: '{b}\n{d}%' },
+    }],
+  }
+})
+const heartDistChartOption = computed(() => {
+  const rows = heartDistributionRows.value
+  if (!rows.length) return null
+  const y = rows.map((r) => r.time)
+  const yMax = Math.max(...y) * 1.08
+  return {
+    grid: { left: 60, right: 20, top: 20, bottom: 40 },
+    xAxis: { type: 'category', data: rows.map((r) => r.name), axisLabel: { color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: {
+      type: 'value',
+      name: t('analysis_time'),
+      nameTextStyle: { color: axisLabelColor.value },
+      axisLabel: { formatter: (v: number) => formatDurationHMS(Math.round(v)), color: axisLabelColor.value },
+      min: 0,
+      max: yMax,
+      splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } },
+    },
+    series: [{ type: 'bar', data: y, itemStyle: { color: (params: any) => paceZoneColor(rows[params.dataIndex]?.zone) } }],
+    tooltip: { trigger: 'axis', formatter: (p: any) => (p?.[0] ? `${p[0].name}: ${formatDurationHMS(Math.round(rows[p[0].dataIndex].time))}` : '') },
+  }
+})
+
+function makeSimpleTrendOption(rows: { date: string; value: number }[], color: string, yName: string) {
+  const list = rows.filter((r) => r.value > 0)
+  if (!list.length) return null
+  const x = list.map((r) => dayjs(r.date).format('MM/DD'))
+  const v = list.map((r) => r.value)
+  const ma = expandingMean(v)
+  const b = dataBoundMinMax(v)
+  return {
+    grid: { left: 50, right: 20, top: 20, bottom: 32 },
+    xAxis: { type: 'category', data: x, boundaryGap: false, axisLabel: { rotate: 45, color: axisLabelColor.value }, axisLine: { lineStyle: { color: axisLineColor.value } } },
+    yAxis: { type: 'value', name: yName, nameTextStyle: { color: axisLabelColor.value }, axisLabel: { color: axisLabelColor.value }, scale: true, min: b.min, max: b.max, splitLine: { lineStyle: { color: darkSplit.value, type: 'dashed' } } },
+    series: [
+      { name: '', type: 'line', data: ma, lineStyle: { width: 0 }, symbol: 'none', areaStyle: { color: meanAreaColor.value }, z: 0 },
+      { name: t('analysis_mean'), type: 'line', data: ma, lineStyle: { type: 'dashed', color: meanLineColor.value }, symbol: 'none', z: 1 },
+      { name: t('analysis_value'), type: 'line', data: v, smooth: true, itemStyle: { color }, z: 2 },
+    ],
+    tooltip: {
+      trigger: 'axis',
+      formatter: axisTooltipInteger,
+      textStyle: { color: tooltipTextColor.value },
+      backgroundColor: tooltipBgColor.value,
+      borderWidth: 0,
+    },
+  }
+}
+
+const hrvChartOption = computed(() => makeSimpleTrendOption(hrvDailyRows.value, '#3F51B5', 'ms'))
+const hrvGrowth = computed(() => growthFromValues(hrvDailyRows.value.map((r) => r.value)))
+const weightChartOption = computed(() => makeSimpleTrendOption(weightDailyRows.value, '#009688', 'kg'))
+const weightGrowth = computed(() => growthFromValues(weightDailyRows.value.map((r) => r.value), { lowerIsBetter: true }))
+
 onMounted(async () => {
   await initSync()
   await loadFromDB()
-  if (!analysisData.value.length && !syncState.value.isComplete) await handleStartSync()
+  // 分析页增量同步策略：
+  // - 本地无历史：首次拉近 60 天，保证图表有足够数据
+  // - 本地已有历史：仅拉近 7 天，降低接口压力
+  const syncDays = analysisData.value.length > 0 ? 7 : 60
+  await syncRecentDays(syncDays)
 })
 watch(() => syncState.value.synced, async (n, o) => { if (n !== o && n > 0) await loadFromDB() })
 </script>
@@ -567,9 +1030,19 @@ watch(() => syncState.value.synced, async (n, o) => { if (n !== o && n > 0) awai
 }
 .chart-stats { display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 0.95rem; }
 .chart-stats .stat-value { font-size: 1.05rem; font-weight: 700; }
+.chart-growth { display: inline-flex; align-items: center; gap: 2px; font-size: 0.8rem; font-weight: 600; }
+.chart-growth--up { color: rgb(var(--v-theme-success)); }
+.chart-growth--down { color: rgb(var(--v-theme-error)); }
+.chart-growth--flat { color: rgba(var(--v-theme-on-surface), 0.6); }
 .chart-wrap { height: 240px; }
 .chart-wrap-tall { height: 320px; }
 .chart-wrap-pie { height: 220px; }
+.posture-zone-table-wrap { overflow-x: auto; }
+.posture-zone-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.posture-zone-table th, .posture-zone-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(var(--v-border-color), 0.08); }
+.posture-zone-table th { font-weight: 600; color: rgba(var(--v-theme-on-surface), 0.7); }
+.posture-zone-table tbody tr:hover { background: rgba(var(--v-theme-on-surface), 0.03); }
+.zone-badge { display: inline-block; min-width: 24px; padding: 2px 8px; border-radius: 4px; color: #fff; font-weight: 700; font-size: 0.8rem; text-align: center; }
 .analysis-masonry { column-gap: 20px; column-count: 1; }
 @media (min-width: 700px) { .analysis-masonry { column-count: 2; } }
 @media (min-width: 1040px) { .analysis-masonry { column-count: 3; } }
