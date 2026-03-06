@@ -188,7 +188,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useLocale } from '@/composables/useLocale'
 import { openApi } from '@/services/api'
 import { db, hasAnyLocalData } from '@/db'
-import { stopSync, resetSync, syncActivitiesInRange } from '@/db/sync'
+import { stopSync, resetSync, syncActivitiesInRange, ACTIVITY_SYNC_COOLDOWN_MS } from '@/db/sync'
 import { resolveApiErrorMessage } from '@/utils/apiError'
 import PaceModal from '@/components/Settings/PaceModal.vue'
 import { formatPace, getThresholdPaceZones, getHrReserveZones, getHrMaxZones, getFtpZones, getSwimCssZones } from '@/utils'
@@ -246,6 +246,9 @@ async function syncRecentDaysInChunks(daysCount: number): Promise<{ fetched: num
     total.skipped += partial.skipped
     remaining -= chunkDays
     cursorEnd = cursorEnd.subtract(chunkDays, 'day')
+    if (remaining > 0) {
+      await new Promise((resolve) => setTimeout(resolve, ACTIVITY_SYNC_COOLDOWN_MS))
+    }
   }
   return total
 }

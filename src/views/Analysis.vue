@@ -325,7 +325,7 @@ import { formatDistance, formatPace, formatDuration, formatDurationHMS } from '@
 import { resolveApiErrorMessage } from '@/utils/apiError'
 import type { DBActivity } from '@/db'
 import { db } from '@/db'
-import { syncState, syncActivitiesInRange, initSync } from '@/db/sync'
+import { syncState, syncActivitiesInRange, initSync, ACTIVITY_SYNC_COOLDOWN_MS } from '@/db/sync'
 import dayjs from 'dayjs'
 
 use([CanvasRenderer, LineChart, BarChart, PieChart, GridComponent, TooltipComponent, LegendComponent])
@@ -379,6 +379,9 @@ async function syncRecentDays(daysCount: number): Promise<{ fetched: number; ins
     result.skipped += partial.skipped
     remaining -= chunkDays
     cursorEnd = cursorEnd.subtract(chunkDays, 'day')
+    if (remaining > 0) {
+      await new Promise((resolve) => setTimeout(resolve, ACTIVITY_SYNC_COOLDOWN_MS))
+    }
   }
   await loadFromDB()
   return result
@@ -1079,14 +1082,20 @@ const weightGrowth = computed(() => growthFromValues(weightDailyRows.value.map((
 onMounted(async () => {
   await initSync()
   await loadFromDB()
-  // 分析页增量同步策略：
-  // - 本地无历史：首次拉近 60 天，保证图表有足够数据
-  // - 本地已有历史：仅拉近 7 天，降低接口压力
-  const syncDays = analysisData.value.length > 0 ? 7 : 60
+  // 分析页自动同步策略：
+  // - 本地无历史：首次自动拉近 60 天，保证图表有数据
+  // - 本地已有历史：不再自动请求接口，仅通过“手动同步”更新
+  if (analysisData.value.length > 0) return
+  const lastSyncAt = syncState.value.lastSyncAt || 0
+  if (lastSyncAt > 0 && Date.now() - lastSyncAt < ACTIVITY_SYNC_COOLDOWN_MS) return
+  const syncDays = 60
   try {
     await syncRecentDays(syncDays)
-  } catch {
-    // 页面首次加载失败不阻断渲染，用户可手动重试
+  } catch (e) {
+    // 页面首次加载失败不阻断渲染，但给出明确提示
+    syncNoticeColor.value = 'error'
+    syncNoticeText.value = resolveApiErrorMessage(e, t, 'activityList')
+    syncNoticeOpen.value = true
   }
 })
 watch(() => syncState.value.synced, async (n, o) => { if (n !== o && n > 0) await loadFromDB() })

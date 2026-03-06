@@ -368,9 +368,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { db } from '@/db'
-import { syncState, initSync, syncActivitiesInRange } from '@/db/sync'
+import { syncState, syncActivitiesInRange } from '@/db/sync'
 import { RUN_TYPE_MAP, RUN_TYPE_COLORS, PAGINATION_CONFIG } from '@/constants'
 import { formatTime, formatDuration, formatDurationHMS, formatDistance, formatPace, getRunTypeIcon, getRelatedTypeName, downloadJSON, downloadText } from '@/utils'
 import { resolveApiErrorMessage } from '@/utils/apiError'
@@ -790,13 +790,7 @@ function handleExportFormat(format: 'excel' | 'json' | 'md') {
   }
 }
 
-// Reload display whenever sync adds more records
-watch(() => syncState.value.synced, async (n, o) => {
-  if (n > o) await loadFromDB()
-})
-
 onMounted(async () => {
-  await initSync()
   setDateRange('clear')
   await loadFromDB()
 })

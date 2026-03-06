@@ -36,6 +36,7 @@ const state = ref<SyncState>({
 })
 
 export const syncState = readonly(state)
+export const ACTIVITY_SYNC_COOLDOWN_MS = RATE_LIMIT_MS
 
 let syncTimer: ReturnType<typeof setTimeout> | null = null
 let abortFlag = false
@@ -247,10 +248,7 @@ export async function syncActivitiesInRange(
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e)
         state.value.error = msg
-        if (msg.includes('429') || (e as any)?.response?.status === 429) {
-          await sleep(RATE_LIMIT_MS)
-          continue
-        }
+        if (msg.includes('429') || (e as any)?.response?.status === 429) throw e
         throw e
       }
     }
