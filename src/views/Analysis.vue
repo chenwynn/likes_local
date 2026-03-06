@@ -15,6 +15,9 @@
         </div>
       </div>
       <v-progress-linear v-if="syncState.running" :model-value="syncProgress" color="primary" height="3" rounded class="mt-2" />
+      <p v-if="syncState.running" class="text-caption text-medium-emphasis mt-1 mb-0">
+        {{ syncProgressText }}
+      </p>
     </div>
 
     <template v-if="dbLoading">
@@ -304,6 +307,9 @@
       </div>
     </template>
   </div>
+  <v-snackbar v-model="syncNoticeOpen" :color="syncNoticeColor" :timeout="2200" location="bottom">
+    {{ syncNoticeText }}
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
@@ -335,6 +341,9 @@ const fallbackWeight = ref<number | null>(null)
 
 const syncProgress = computed(() => !syncState.value.total ? 0 : Math.min(100, Math.round((syncState.value.synced / syncState.value.total) * 100)))
 const syncProgressText = computed(() => syncState.value.total ? `${syncState.value.synced} / ${syncState.value.total}` : t('analysis_syncing'))
+const syncNoticeOpen = ref(false)
+const syncNoticeText = ref('')
+const syncNoticeColor = ref<'success' | 'error' | 'info'>('info')
 
 async function loadFromDB() {
   dbLoading.value = true
@@ -353,12 +362,27 @@ function getRecentRange(daysCount: number): { startDate: string; endDate: string
   const startDate = dayjs().subtract(Math.max(1, daysCount) - 1, 'day').format('YYYY-MM-DD')
   return { startDate, endDate }
 }
-async function syncRecentDays(daysCount: number): Promise<void> {
+async function syncRecentDays(daysCount: number): Promise<{ fetched: number; inserted: number; skipped: number }> {
   const { startDate, endDate } = getRecentRange(daysCount)
-  await syncActivitiesInRange(startDate, endDate)
+  const result = await syncActivitiesInRange(startDate, endDate)
   await loadFromDB()
+  return result
 }
-async function handleStartSync() { await syncRecentDays(60) }
+async function handleStartSync() {
+  syncNoticeOpen.value = false
+  syncNoticeColor.value = 'info'
+  syncNoticeText.value = t('analysis_syncing')
+  try {
+    const result = await syncRecentDays(60)
+    syncNoticeColor.value = 'success'
+    syncNoticeText.value = `${t('analysis_sync_done')} (+${result.inserted})`
+  } catch {
+    syncNoticeColor.value = 'error'
+    syncNoticeText.value = syncState.value.error || t('act_sync_failed')
+  } finally {
+    syncNoticeOpen.value = true
+  }
+}
 
 const filteredActivities = computed(() => {
   const cutoff = dayjs().subtract(days.value - 1, 'day').startOf('day').unix()

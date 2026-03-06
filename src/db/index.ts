@@ -274,15 +274,16 @@ function makeBackupVersion(ts: number): string {
 }
 
 export async function hasAnyLocalData(): Promise<boolean> {
-  const [profile, activities, fits, analysis, plans, courses] = await Promise.all([
-    db.profile.count(),
+  // 用于“初始化同步”禁用判断：
+  // profile 常会被导航/设置页按需刷新，不应阻止初始化同步按钮可用。
+  const [activities, fits, analysis, plans, courses] = await Promise.all([
     db.activities.count(),
     db.activity_fits.count(),
     db.analysis_detail.count(),
     db.game_task_user.count(),
     db.runcourse.count(),
   ])
-  return profile + activities + fits + analysis + plans + courses > 0
+  return activities + fits + analysis + plans + courses > 0
 }
 
 export async function createLocalBackup(): Promise<DBBackup> {

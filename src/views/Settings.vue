@@ -188,7 +188,7 @@ import { useAuth } from '@/composables/useAuth'
 import { useLocale } from '@/composables/useLocale'
 import { openApi } from '@/services/api'
 import { db, hasAnyLocalData } from '@/db'
-import { resetSync, startSync } from '@/db/sync'
+import { stopSync, resetSync, startSync } from '@/db/sync'
 import { resolveApiErrorMessage } from '@/utils/apiError'
 import PaceModal from '@/components/Settings/PaceModal.vue'
 import { formatPace, getThresholdPaceZones, getHrReserveZones, getHrMaxZones, getFtpZones, getSwimCssZones } from '@/utils'
@@ -236,11 +236,14 @@ async function runInitSync() {
   initSyncLoading.value = true
   try {
     // 1) Profile
+    initSyncHint.value = t('settings_init_sync_stage_profile')
     await openApi.getProfile(true)
     // 2) Plans
+    initSyncHint.value = t('settings_init_sync_stage_plans')
     await db.game_task_user.clear()
     await openApi.syncPlansToLocal({})
     // 3) Activities (full background sync, first page immediately)
+    initSyncHint.value = t('settings_init_sync_stage_activities')
     await resetSync()
     await startSync()
     await loadDbStats()
@@ -383,11 +386,56 @@ async function clearDb() {
   if (!ok) return
   clearingDb.value = true
   try {
-    await resetSync()
-    await db.activity_fits.clear()
-    await db.profile.clear()
-    await db.game_task_user.clear()
-    await db.runcourse.clear()
+    // 完整清空本地数据，恢复到首次初始化状态
+    stopSync()
+    await db.transaction(
+      'rw',
+      db.profile,
+      db.activities,
+      db.activity_fits,
+      db.analysis_detail,
+      db.sync_meta,
+      db.game_task_user,
+      db.runcourse,
+      db.backups,
+      async () => {
+        await db.profile.clear()
+        await db.activities.clear()
+        await db.activity_fits.clear()
+        await db.analysis_detail.clear()
+        await db.sync_meta.clear()
+        await db.game_task_user.clear()
+        await db.runcourse.clear()
+        await db.backups.clear()
+      }
+    )
+    // 清除 session 级接口缓存，避免页面继续回显旧数据
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => k.startsWith('likes_cache_'))
+        .forEach((k) => sessionStorage.removeItem(k))
+    } catch {}
+    // 清空当前设置页表单（避免视觉上看起来“还有数据”）
+    Object.assign(profileForm, {
+      user_name: '',
+      slogan: '',
+      height: undefined,
+      weight: undefined,
+      min_rate: undefined,
+      max_rate: undefined,
+      run_force: undefined,
+      goal_m: undefined,
+      m: undefined,
+      goal_t: undefined,
+      t: undefined,
+      t_pace: undefined,
+      critical_power: undefined,
+      ftp: undefined,
+      max_rate_ride: undefined,
+      lt_ride: undefined,
+      css: undefined,
+      max_rate_swim: undefined,
+    })
     await loadDbStats()
     await refreshInitSyncDisabled()
   } finally {
