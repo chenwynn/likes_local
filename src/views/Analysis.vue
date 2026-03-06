@@ -248,7 +248,7 @@
           </v-card-text>
         </v-card>
 
-        <v-card class="analysis-card" variant="outlined">
+        <v-card v-if="false" class="analysis-card" variant="outlined">
           <v-card-title class="analysis-card-title d-flex align-center">
             <v-icon size="22" class="me-2">mdi-heart-box</v-icon>{{ t('analysis_hrv_trend') }}
             <v-spacer />
@@ -260,7 +260,7 @@
           <v-card-text><div v-if="hrvChartOption" class="chart-wrap"><v-chart :option="hrvChartOption" autoresize /></div><p v-else class="text-center text-medium-emphasis py-4">{{ t('analysis_no_data') }}</p></v-card-text>
         </v-card>
 
-        <v-card class="analysis-card" variant="outlined">
+        <v-card v-if="false" class="analysis-card" variant="outlined">
           <v-card-title class="analysis-card-title d-flex align-center">
             <v-icon size="22" class="me-2">mdi-scale-bathroom</v-icon>{{ t('analysis_weight_trend') }}
             <v-spacer />
@@ -839,9 +839,35 @@ const verticalGrowth = computed(() => growthFromValues(trendRows.value.map((r) =
 const verticalRatioGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.avg_vertical_ratio).filter((v) => v > 0), { lowerIsBetter: true }))
 const runForceGrowth = computed(() => growthFromValues(trendRows.value.map((r) => r.run_force).filter((v) => v > 0)))
 
+function estimatePerformanceBaseline(rows: TrendRow[]): number {
+  if (!rows.length) return 0
+  const firstDay = dayjs(rows[0].date).startOf('day')
+  const lookbackDays = 42
+  const startDay = firstDay.subtract(lookbackDays, 'day')
+  const tssByDay = new Map<string, number>()
+  analysisData.value.forEach((a) => {
+    if (a.overlap !== 0) return
+    const sign = dayjs.unix(a.sign_date)
+    if (sign.isBefore(startDay) || !sign.isBefore(firstDay)) return
+    const key = sign.format('YYYY-MM-DD')
+    tssByDay.set(key, (tssByDay.get(key) || 0) + (Number(a.tss) || 0))
+  })
+  let sum = 0
+  for (let i = 0; i < lookbackDays; i++) {
+    const day = startDay.add(i, 'day').format('YYYY-MM-DD')
+    sum += tssByDay.get(day) || 0
+  }
+  const baseline = sum / lookbackDays
+  if (baseline > 0) return baseline
+  // 若无完整历史，退化为当前窗口均值估算，避免从 0 起步
+  const currentAvg = mean(rows.map((r) => Number(r.tss) || 0))
+  return currentAvg > 0 ? currentAvg : 0
+}
+
 const performanceRows = computed(() => {
-  let fitness = 0
-  let fatigue = 0
+  const baseline = estimatePerformanceBaseline(trendRows.value)
+  let fitness = baseline
+  let fatigue = baseline
   return trendRows.value.map((r) => {
     const tss = r.tss || 0
     fitness = fitness + (tss - fitness) / 42
@@ -855,8 +881,13 @@ const performanceChartOption = computed(() => {
   const x = list.map(r => dayjs(r.date).format('MM/DD'))
   const f = list.map(r => Number(r.fitness.toFixed(1)))
   const a = list.map(r => Number(r.fatigue.toFixed(1)))
-  const s = list.map(r => Number(r.form.toFixed(1)))
-  const bound = dataBoundMinMax([...f, ...a, ...s], 0.1)
+  const sRaw = list.map(r => Number(r.form.toFixed(1)))
+  // 状态线（Form）通常在 -30~30，做仅展示用的上移偏移，增强与体能/疲劳曲线的交错可读性
+  const lowerLoad = Math.min(...f, ...a)
+  const upperForm = Math.max(...sRaw)
+  const formDisplayOffset = lowerLoad > upperForm ? (lowerLoad - upperForm) * 0.82 : 0
+  const sDisplay = sRaw.map(v => Number((v + formDisplayOffset).toFixed(1)))
+  const bound = dataBoundMinMax([...f, ...a, ...sDisplay], 0.1)
   return {
     grid: { left: 44, right: 20, top: 30, bottom: 38 },
     legend: { bottom: 0, data: [t('analysis_fitness'), t('analysis_fatigue'), t('analysis_form')] },
@@ -865,11 +896,21 @@ const performanceChartOption = computed(() => {
     series: [
       { name: t('analysis_fitness'), type: 'line', data: f, smooth: true, itemStyle: { color: '#91cc75' } },
       { name: t('analysis_fatigue'), type: 'line', data: a, smooth: true, itemStyle: { color: '#ee6666' } },
-      { name: t('analysis_form'), type: 'line', data: s, smooth: true, itemStyle: { color: '#fac858' } },
+      { name: t('analysis_form'), type: 'line', data: sDisplay, smooth: true, itemStyle: { color: '#fac858' } },
     ],
     tooltip: {
       trigger: 'axis',
-      formatter: axisTooltipInteger,
+      formatter: (params: any) => {
+        if (!params?.length) return ''
+        const idx = Number(params[0]?.dataIndex ?? 0)
+        const lines = [
+          params[0].name,
+          `${t('analysis_fitness')}: ${Math.round(f[idx] ?? 0)}`,
+          `${t('analysis_fatigue')}: ${Math.round(a[idx] ?? 0)}`,
+          `${t('analysis_form')}: ${Math.round(sRaw[idx] ?? 0)}`,
+        ]
+        return lines.join('<br/>')
+      },
       textStyle: { color: tooltipTextColor.value },
       backgroundColor: tooltipBgColor.value,
       borderWidth: 0,

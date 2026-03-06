@@ -232,6 +232,24 @@ async function testApiConnection() {
   }
 }
 
+async function syncRecentDaysInChunks(daysCount: number): Promise<{ fetched: number; inserted: number; skipped: number }> {
+  let cursorEnd = dayjs()
+  let remaining = Math.max(1, daysCount)
+  const total = { fetched: 0, inserted: 0, skipped: 0 }
+  while (remaining > 0) {
+    const chunkDays = Math.min(30, remaining)
+    const endDate = cursorEnd.format('YYYY-MM-DD')
+    const startDate = cursorEnd.subtract(chunkDays - 1, 'day').format('YYYY-MM-DD')
+    const partial = await syncActivitiesInRange(startDate, endDate)
+    total.fetched += partial.fetched
+    total.inserted += partial.inserted
+    total.skipped += partial.skipped
+    remaining -= chunkDays
+    cursorEnd = cursorEnd.subtract(chunkDays, 'day')
+  }
+  return total
+}
+
 async function runInitSync() {
   if (initSyncDisabled.value) return
   initSyncLoading.value = true
@@ -246,9 +264,7 @@ async function runInitSync() {
     // 3) Activities (sync latest 60 days, then finish)
     initSyncHint.value = t('settings_init_sync_stage_activities')
     await resetSync()
-    const endDate = dayjs().format('YYYY-MM-DD')
-    const startDate = dayjs().subtract(59, 'day').format('YYYY-MM-DD')
-    const result = await syncActivitiesInRange(startDate, endDate)
+    const result = await syncRecentDaysInChunks(60)
     await loadDbStats()
     await refreshInitSyncDisabled()
     initSyncHint.value = `${t('settings_init_sync_started')} (+${result.inserted})`
