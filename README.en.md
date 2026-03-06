@@ -2,10 +2,10 @@
 
 [中文](./README.md)
 
-![Screenshot 1](./docs/Screenshot%202026-03-05%20at%2013.48.14.png)
-![Screenshot 2](./docs/Screenshot%202026-03-05%20at%2013.48.18.png)
-![Screenshot 3](./docs/Screenshot%202026-03-05%20at%2013.48.27.png)
-![Screenshot 4](./docs/Screenshot%202026-03-05%20at%2013.48.30.png)
+![Screenshot 1](./docs/en/Screenshot%202026-03-06%20at%2015.59.58.png)
+![Screenshot 2](./docs/en/Screenshot%202026-03-06%20at%2016.00.02.png)
+![Screenshot 3](./docs/en/Screenshot%202026-03-06%20at%2016.00.11.png)
+![Screenshot 4](./docs/en/Screenshot%202026-03-06%20at%2016.00.17.png)
 
 A pure frontend app to visualize your [Likes](https://my.likes.com.cn) fitness data via Open API.  
 Run locally or deploy to Vercel in one click.

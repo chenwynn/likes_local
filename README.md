@@ -2,10 +2,10 @@
 
 [English](./README.en.md)
 
-![系统截图 1](./docs/Screenshot%202026-03-05%20at%2013.48.14.png)
-![系统截图 2](./docs/Screenshot%202026-03-05%20at%2013.48.18.png)
-![系统截图 3](./docs/Screenshot%202026-03-05%20at%2013.48.27.png)
-![系统截图 4](./docs/Screenshot%202026-03-05%20at%2013.48.30.png)
+![系统截图 1](./docs/cn/Screenshot%202026-03-06%20at%2015.43.07.png)
+![系统截图 2](./docs/cn/Screenshot%202026-03-06%20at%2015.43.12.png)
+![系统截图 3](./docs/cn/Screenshot%202026-03-06%20at%2015.43.25.png)
+![系统截图 4](./docs/cn/Screenshot%202026-03-06%20at%2015.43.28.png)
 
 一个纯前端项目，通过开放 API 展示你的 [Likes](https://my.likes.com.cn) 运动数据。支持一键本地运行或部署到 Vercel。
 
